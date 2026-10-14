@@ -1,0 +1,13 @@
+services:
+  sql:
+    image: postgres
+    ports:
+      - "15432:5432"
+    environment:
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: admin
+      POSTGRES_DB: benchMarks
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"

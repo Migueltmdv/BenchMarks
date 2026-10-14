@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="gl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bancos para sentar</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800">
+  <div id="app" class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Login -->
+    <section id="loginView" class="min-h-screen flex items-center justify-center px-4 py-10">
+      <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+          <div class="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-400 via-teal-500 to-indigo-600 flex items-center justify-center shadow-2xl">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-11 h-11 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 14h16"></path>
+              <path d="M6 14V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6"></path>
+              <path d="M6 14v4"></path>
+              <path d="M18 14v4"></path>
+            </svg>
+          </div>
+          <h1 class="text-4xl font-extrabold tracking-tight mt-5 bg-gradient-to-r from-emerald-500 to-indigo-600 bg-clip-text text-transparent">BenchMarks</h1>
+          <p class="text-slate-500 mt-2">Descubre, valora y comparte los mejores bancos</p>
+        </div>
+
+        <div class="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/40">
+          <div class="flex mb-6 rounded-xl bg-slate-100 p-1">
+            <button type="button" id="tabLogin" class="flex-1 py-2 rounded-lg text-sm font-medium bg-white shadow text-slate-900">Iniciar sesión</button>
+            <button type="button" id="tabRegister" class="flex-1 py-2 rounded-lg text-sm font-medium text-slate-500">Crear cuenta</button>
+          </div>
+
+          <form id="loginForm" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">Usuario</label>
+              <input id="username" class="w-full border rounded-xl px-4 py-3 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-400 outline-none" placeholder="userID" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">Contrasinal</label>
+              <input id="password" type="password" class="w-full border rounded-xl px-4 py-3 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-400 outline-none" placeholder="••••••••" required>
+            </div>
+            <button class="w-full bg-gradient-to-r from-emerald-500 to-indigo-600 text-white rounded-xl py-3 font-semibold hover:opacity-90 transition">Entrar</button>
+          </form>
+
+          <form id="registerForm" class="space-y-4 hidden">
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">Usuario</label>
+              <input id="rUsername" class="w-full border rounded-xl px-4 py-3 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-400 outline-none" placeholder="userID" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">Nome</label>
+              <input id="rName" class="w-full border rounded-xl px-4 py-3 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-400 outline-none" placeholder="O teu nome" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">Contrasinal</label>
+              <input id="rPassword" type="password" class="w-full border rounded-xl px-4 py-3 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-emerald-400 outline-none" placeholder="••••••••" required>
+            </div>
+            <button class="w-full bg-gradient-to-r from-emerald-500 to-indigo-600 text-white rounded-xl py-3 font-semibold hover:opacity-90 transition">Crear conta</button>
+          </form>
+
+          <div id="loginMsg" class="mt-4 text-sm text-red-600"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- App -->
+    <section id="appView" class="hidden">
+      <header class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-3xl font-bold">Bancos para sentar</h1>
+          <p class="text-slate-500" id="whoami"></p>
+        </div>
+        <button id="logoutBtn" class="bg-slate-800 text-white px-4 py-2 rounded hover:bg-black">Pechar sesión</button>
+      </header>
+
+      <nav class="flex gap-2 mb-6">
+        <button class="tabBtn bg-blue-600 text-white px-4 py-2 rounded" data-tab="benches">Bancos</button>
+        <button class="tabBtn bg-slate-200 px-4 py-2 rounded" data-tab="photos">Fotos</button>
+        <button class="tabBtn bg-slate-200 px-4 py-2 rounded" data-tab="reviews">Valoracións</button>
+        <button class="tabBtn bg-slate-200 px-4 py-2 rounded" data-tab="profile">Perfil</button>
+      </nav>
+
+      <!-- Benches -->
+      <div id="benchesTab" class="tabContent space-y-4">
+        <div class="bg-white shadow rounded-xl p-4">
+          <h2 class="font-semibold mb-3">Engadir banco</h2>
+          <form id="benchForm" class="flex flex-wrap gap-2">
+            <input id="benchCords" class="border rounded px-3 py-2 flex-1" placeholder="Coordenadas (lat,lon)" required>
+            <input id="benchType" class="border rounded px-3 py-2 flex-1" placeholder="Tipo" required>
+            <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Engadir</button>
+          </form>
+        </div>
+        <div class="bg-white shadow rounded-xl p-4">
+          <h2 class="font-semibold mb-3">Listado (ordenado por likes)</h2>
+          <div id="benchGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+      </div>
+
+      <!-- Photos -->
+      <div id="photosTab" class="tabContent hidden space-y-4">
+        <div class="bg-white shadow rounded-xl p-4">
+          <h2 class="font-semibold mb-3">Engadir foto (metadatos)</h2>
+          <form id="photoForm" class="flex flex-wrap gap-2">
+            <input id="photoRes" class="border rounded px-3 py-2 flex-1" placeholder="Resolución" required>
+            <input id="photoSize" type="number" class="border rounded px-3 py-2 flex-1" placeholder="Tamaño (bytes)" required>
+            <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Engadir</button>
+          </form>
+        </div>
+        <div class="bg-white shadow rounded-xl p-4">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50"><tr><th class="p-2">Img</th><th class="text-left p-2">ID</th><th class="text-left p-2">Resolución</th><th class="text-left p-2">Tamaño</th><th class="p-2"></th></tr></thead>
+            <tbody id="photoTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Reviews -->
+      <div id="reviewsTab" class="tabContent hidden space-y-4">
+        <div class="bg-white shadow rounded-xl p-4">
+          <h2 class="font-semibold mb-3">Nova valoración</h2>
+          <form id="reviewForm" class="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <select id="reviewBench" class="border rounded px-3 py-2"></select>
+            <input id="reviewMark" type="number" min="0" max="10" class="border rounded px-3 py-2" placeholder="Nota (0-10)" required>
+            <input id="reviewNote" class="border rounded px-3 py-2" placeholder="Comentario">
+            <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 md:col-span-3">Enviar</button>
+          </form>
+        </div>
+        <div class="bg-white shadow rounded-xl p-4">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50"><tr><th class="text-left p-2">ID</th><th class="text-left p-2">Banco</th><th class="text-left p-2">Nota</th><th class="text-left p-2">Comentario</th><th class="p-2"></th></tr></thead>
+            <tbody id="reviewTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Profile -->
+      <div id="profileTab" class="tabContent hidden space-y-4">
+        <div class="bg-white shadow rounded-xl p-4">
+          <h2 class="font-semibold mb-3">Editar perfil</h2>
+          <form id="profileForm" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <input id="pName" class="border rounded px-3 py-2" placeholder="Nome">
+            <input id="pLast" class="border rounded px-3 py-2" placeholder="Apelidos">
+            <input id="pNick" class="border rounded px-3 py-2" placeholder="Nickname">
+            <input id="pLocation" class="border rounded px-3 py-2" placeholder="Localización">
+            <input id="pPassword" type="password" class="border rounded px-3 py-2" placeholder="Nova contrasinal (opcional)">
+            <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Gardar</button>
+          </form>
+          <div id="profileMsg" class="mt-2 text-sm"></div>
+        </div>
+      </div>
+
+      <div id="msg" class="mt-4 text-sm text-red-600"></div>
+    </section>
+  </div>
+
+<script>
+const API = '';
+function token(){ return localStorage.getItem('token'); }
+function setToken(t){ localStorage.setItem('token', t); }
+function clearToken(){ localStorage.removeItem('token'); }
+async function api(path, options={}){
+  const headers = Object.assign({'Content-Type':'application/json'}, options.headers||{});
+  if(token()) headers.Authorization = 'Bearer '+token();
+  const r = await fetch(API+path, Object.assign(options,{headers}));
+  if(!r.ok){
+    let txt=''; try{txt=await r.text();}catch(e){}
+    throw new Error(txt||('HTTP '+r.status));
+  }
+  if(r.status===204) return null;
+  const ct=r.headers.get('content-type')||'';
+  return ct.includes('json')? r.json(): r.text();
+}
+
+// Login
+document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const u=document.getElementById('username').value.trim();
+  const p=document.getElementById('password').value;
+  try{
+    const r = await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userID:u,password:p})});
+    if(!r.ok) throw new Error('Credenciais incorrectas');
+    const t = r.headers.get('authorization')||r.headers.get('Authorization');
+    if(!t) throw new Error('Non se recibiu token');
+    setToken(t.replace(/^Bearer /i,''));
+    showApp(u);
+  }catch(err){ document.getElementById('loginMsg').textContent=err.message; }
+});
+
+// Tabs login/register
+function showLoginForm(){
+  document.getElementById('loginForm').classList.remove('hidden');
+  document.getElementById('registerForm').classList.add('hidden');
+  document.getElementById('tabLogin').className='flex-1 py-2 rounded-lg text-sm font-medium bg-white shadow text-slate-900';
+  document.getElementById('tabRegister').className='flex-1 py-2 rounded-lg text-sm font-medium text-slate-500';
+}
+function showRegisterForm(){
+  document.getElementById('loginForm').classList.add('hidden');
+  document.getElementById('registerForm').classList.remove('hidden');
+  document.getElementById('tabRegister').className='flex-1 py-2 rounded-lg text-sm font-medium bg-white shadow text-slate-900';
+  document.getElementById('tabLogin').className='flex-1 py-2 rounded-lg text-sm font-medium text-slate-500';
+}
+document.getElementById('tabLogin').addEventListener('click', showLoginForm);
+document.getElementById('tabRegister').addEventListener('click', showRegisterForm);
+
+document.getElementById('registerForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const u=document.getElementById('rUsername').value.trim();
+  const n=document.getElementById('rName').value.trim();
+  const p=document.getElementById('rPassword').value;
+  try{
+    const r=await fetch(API+'/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userID:u,name:n,password:p})});
+    if(!r.ok){ let txt=''; try{txt=await r.text();}catch(e){} throw new Error(txt||'Non se puido crear a conta'); }
+    // auto login
+    const lr=await fetch(API+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userID:u,password:p})});
+    if(!lr.ok) throw new Error('Conta creada. Inicia sesión.');
+    const t=lr.headers.get('authorization')||lr.headers.get('Authorization');
+    setToken(t.replace(/^Bearer /i,''));
+    showApp(u);
+  }catch(err){ document.getElementById('loginMsg').textContent=err.message; }
+});
+
+
+document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+  try{ await api('/auth/logout',{method:'POST'}); }catch(e){}
+  clearToken(); showLogin();
+});
+
+function showLogin(){
+  document.getElementById('loginView').classList.remove('hidden');
+  document.getElementById('appView').classList.add('hidden');
+}
+function showApp(user){
+  document.getElementById('loginView').classList.add('hidden');
+  document.getElementById('appView').classList.remove('hidden');
+  document.getElementById('whoami').textContent='Usuario: '+user;
+  loadAll();
+}
+
+// Tabs
+document.querySelectorAll('.tabBtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const tab=btn.dataset.tab;
+    document.querySelectorAll('.tabBtn').forEach(b=>{ b.className='tabBtn bg-slate-200 px-4 py-2 rounded'; });
+    btn.className='tabBtn bg-blue-600 text-white px-4 py-2 rounded';
+    document.querySelectorAll('.tabContent').forEach(c=>c.classList.add('hidden'));
+    document.getElementById(tab+'Tab').classList.remove('hidden');
+  });
+});
+
+function msg(t,cls='text-red-600'){ const m=document.getElementById('msg'); m.textContent=t; m.className='mt-4 text-sm '+cls; }
+
+async function loadBenches(){
+  const data=await api('/benches?size=200&sort=-likes');
+  const items=data.content||data;
+  const grid=document.getElementById('benchGrid');
+  grid.innerHTML='';
+  const sel=document.getElementById('reviewBench');
+  sel.innerHTML='';
+  (items||[]).forEach(b=>{
+    const card=document.createElement('div');
+    card.className='bg-slate-50 rounded-xl overflow-hidden shadow';
+    const imgIdx = ((b.benchID-1) % 30) + 1;
+    card.innerHTML=`
+      <img src="/img/img${imgIdx}.jpg" class="w-full h-48 object-cover" alt="Banco ${b.benchID}">
+      <div class="p-3 space-y-2">
+        <div class="flex items-center justify-between">
+          <h3 class="font-semibold">${b.type} #${b.benchID}</h3>
+          <span class="text-sm text-slate-500">${b.cords}</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button class="likeBtn bg-pink-100 text-pink-700 px-3 py-1 rounded hover:bg-pink-200">❤ ${b.likes??0}</button>
+          <button class="delBtn text-red-600 text-sm">Borrar</button>
+        </div>
+      </div>`;
+    card.querySelector('.likeBtn').addEventListener('click', async ()=>{
+      try{ await api('/benches/'+b.benchID+'/like',{method:'POST'}); loadBenches(); }catch(e){ msg(e.message); }
+    });
+    card.querySelector('.delBtn').addEventListener('click', async ()=>{
+      if(!confirm('Borrar banco '+b.benchID+'?')) return;
+      await api('/benches/'+b.benchID,{method:'DELETE'}); loadBenches(); loadReviews();
+    });
+    grid.appendChild(card);
+    const opt=document.createElement('option'); opt.value=b.benchID; opt.textContent='#'+b.benchID+' '+b.type; sel.appendChild(opt);
+  });
+}
+document.getElementById('benchForm').addEventListener('submit', async(e)=>{
+  e.preventDefault();
+  try{
+    await api('/benches',{method:'POST',body:JSON.stringify({cords:document.getElementById('benchCords').value,type:document.getElementById('benchType').value})});
+    document.getElementById('benchCords').value=''; document.getElementById('benchType').value='';
+    msg('Banco engadido','text-green-600'); loadBenches();
+  }catch(err){ msg(err.message); }
+});
+
+async function loadPhotos(){
+  const data=await api('/photos');
+  const items=data.content||data;
+  const tbody=document.getElementById('photoTable');
+  tbody.innerHTML='';
+  (items||[]).forEach(p=>{
+    const tr=document.createElement('tr');
+    const imgIdx = ((p.photoID-1) % 30) + 1;
+    tr.innerHTML=`<td class="p-2"><img src="/img/img${imgIdx}.jpg" class="w-16 h-12 object-cover rounded"></td><td class="p-2">${p.photoID}</td><td class="p-2">${p.resolution}</td><td class="p-2">${p.size}</td>
+      <td class="p-2 text-right"><button class="text-red-600" data-id="${p.photoID}">Borrar</button></td>`;
+    tr.querySelector('button').addEventListener('click', async ()=>{ await api('/photos/'+p.photoID,{method:'DELETE'}); loadPhotos(); });
+    tbody.appendChild(tr);
+  });
+}
+document.getElementById('photoForm').addEventListener('submit', async(e)=>{
+  e.preventDefault();
+  try{
+    await api('/photos',{method:'POST',body:JSON.stringify({resolution:document.getElementById('photoRes').value,size:Number(document.getElementById('photoSize').value)})});
+    document.getElementById('photoRes').value=''; document.getElementById('photoSize').value='';
+    msg('Foto engadida','text-green-600'); loadPhotos();
+  }catch(err){ msg(err.message); }
+});
+
+async function loadReviews(){
+  const data=await api('/valoraciones');
+  const items=data.content||data;
+  const tbody=document.getElementById('reviewTable');
+  tbody.innerHTML='';
+  (items||[]).forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="p-2">${r.reviewId}</td><td class="p-2">#${r.benchOfReview.benchID}</td><td class="p-2">${r.mark}</td><td class="p-2">${r.note||''}</td>
+      <td class="p-2 text-right"><button class="text-red-600">Borrar</button></td>`;
+    tr.querySelector('button').addEventListener('click', async ()=>{ await api('/valoraciones/'+r.reviewId,{method:'DELETE'}); loadReviews(); });
+    tbody.appendChild(tr);
+  });
+}
+document.getElementById('reviewForm').addEventListener('submit', async(e)=>{
+  e.preventDefault();
+  const benchId=Number(document.getElementById('reviewBench').value);
+  try{
+    await api('/valoraciones',{method:'POST',body:JSON.stringify({reviewer:{userID:localStorage.getItem('who')||JSON.parse(atob(token().split('.')[1])).sub},benchOfReview:{benchID:benchId},mark:Number(document.getElementById('reviewMark').value),note:document.getElementById('reviewNote').value})});
+    document.getElementById('reviewNote').value='';
+    msg('Valoración enviada','text-green-600'); loadReviews();
+  }catch(err){ msg(err.message); }
+});
+
+async function loadProfile(){
+  // decode subject
+  const sub=JSON.parse(atob(token().split('.')[1])).sub;
+  const u=await api('/users/'+sub);
+  document.getElementById('pName').value=u.name||'';
+  document.getElementById('pLast').value=u.lastName||'';
+  document.getElementById('pNick').value=u.nickname||'';
+  document.getElementById('pLocation').value=u.location||'';
+  document.getElementById('profileForm').onsubmit=async(ev)=>{
+    ev.preventDefault();
+    const body={userID:sub,name:document.getElementById('pName').value,lastName:document.getElementById('pLast').value,nickname:document.getElementById('pNick').value,location:document.getElementById('pLocation').value};
+    const pw=document.getElementById('pPassword').value;
+    if(pw) body.password=pw;
+    await api('/users/'+sub,{method:'PUT',body:JSON.stringify(body)});
+    document.getElementById('profileMsg').textContent='Perfil actualizado'; document.getElementById('profileMsg').className='mt-2 text-sm text-green-600';
+  };
+}
+
+async function loadAll(){
+  try{ await loadBenches(); await loadPhotos(); await loadReviews(); await loadProfile(); }
+  catch(e){ msg(e.message); if(e.message.includes('401')){ clearToken(); showLogin(); } }
+}
+
+if(token()){ showApp(JSON.parse(atob(token().split('.')[1])).sub); } else { showLogin(); }
+</script>
+</body>
+</html>

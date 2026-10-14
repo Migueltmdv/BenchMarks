@@ -1,0 +1,1 @@
+TRUNCATE usuario, bench, photo, valoracion CASCADE;

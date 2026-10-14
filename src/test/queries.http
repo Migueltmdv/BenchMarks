@@ -1,0 +1,41 @@
+### Admin login
+POST http://localhost:8080/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "1234"
+}
+
+> {% client.global.set("admin_token", response.headers.valueOf("Authorization")); %}
+
+### Get all books as admin
+GET http://localhost:8080/books
+    ?size=3
+Accept: application/hal+json
+Authorization: {{admin_token}}
+
+### Get a book as admin
+GET http://localhost:8080/books/978-0544003415
+Accept: application/hal+json
+Authorization: {{admin_token}}
+
+### Get all users as admin v0
+GET http://localhost:8080/users
+Accept: application/json
+Authorization: {{admin_token}}
+API-Version: 0
+
+### Get all users as admin v1
+GET http://localhost:8080/users
+Accept: application/json
+Authorization: {{admin_token}}
+API-Version: 1
+
+### Admin logout
+POST http://localhost:8080/auth/logout
+Authorization: {{admin_token}}
+
+### Admin refresh
+POST http://localhost:8080/auth/refresh
+Authorization: {{admin_token}}
