@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '4.0.0-SNAPSHOT'
+    id 'org.springframework.boot' version '4.0.9'
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -16,7 +16,6 @@ java {
 
 repositories {
     mavenCentral()
-    maven { url = 'https://repo.spring.io/snapshot' }
 }
 
 dependencies {
@@ -28,8 +27,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0-RC1'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-scalar:3.0.0-RC1'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-scalar:3.0.3'
 
     testImplementation 'org.springframework.security:spring-security-test'
 

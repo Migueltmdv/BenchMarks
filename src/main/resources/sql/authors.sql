@@ -21,3 +21,7 @@ INSERT INTO valoraciones (review_id, reviewer_id, bench_id, date, mark, note, ph
 (18, 'admin', 18, '2026-06-18 12:45:00', 8, 'Well located.', 18),
 (19, 'user', 19, '2026-06-19 14:30:00', 9, 'Clean and comfy.', 19),
 (20, 'admin', 20, '2026-06-20 16:00:00', 5, 'Average bench.', 20);
+
+
+-- Avanza la secuencia para que los POST no choquen con los IDs insertados a mano
+SELECT setval(pg_get_serial_sequence('valoraciones', 'review_id'), (SELECT MAX(review_id) FROM valoraciones));

@@ -31,6 +31,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         return http.authorizeHttpRequests(authorize ->
                         authorize.requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/error").permitAll()
                                 .requestMatchers("/docs/**").permitAll()
                                 .requestMatchers("/", "/index.html", "/favicon.ico").permitAll()
                                 .requestMatchers("/*.js", "/*.css", "/*.html", "/assets/**").permitAll()

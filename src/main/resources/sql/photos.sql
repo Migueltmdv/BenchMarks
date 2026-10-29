@@ -21,3 +21,7 @@ INSERT INTO photos(photo_id, resolution, size) VALUES
 (18, '800x600', 127000),
 (19, '1920x1080', 545000),
 (20, '1280x720', 325000);
+
+
+-- Avanza la secuencia para que los POST no choquen con los IDs insertados a mano
+SELECT setval(pg_get_serial_sequence('photos', 'photo_id'), (SELECT MAX(photo_id) FROM photos));

@@ -21,3 +21,7 @@ INSERT INTO benches(bench_id, cords, type, likes) VALUES
 (18, '39.5696,2.6502', 'Metal', 10),
 (19, '38.9944,-1.8572', 'Wooden', 18),
 (20, '40.6350,-3.1670', 'Concrete', 1);
+
+
+-- Avanza la secuencia para que los POST no choquen con los IDs insertados a mano
+SELECT setval(pg_get_serial_sequence('benches', 'bench_id'), (SELECT MAX(bench_id) FROM benches));
