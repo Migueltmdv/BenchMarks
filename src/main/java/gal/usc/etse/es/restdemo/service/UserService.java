@@ -1,8 +1,11 @@
 package gal.usc.etse.es.restdemo.service;
 
+import gal.usc.etse.es.restdemo.exception.BenchNotFoundException;
 import gal.usc.etse.es.restdemo.exception.DuplicateUserException;
-import gal.usc.etse.es.restdemo.model.entity.Role;
+import gal.usc.etse.es.restdemo.model.dto.Bench;
 import gal.usc.etse.es.restdemo.model.dto.User;
+import gal.usc.etse.es.restdemo.model.entity.Role;
+import gal.usc.etse.es.restdemo.repository.BenchRepository;
 import gal.usc.etse.es.restdemo.repository.RoleRepository;
 import gal.usc.etse.es.restdemo.repository.UserRepository;
 import gal.usc.etse.es.utils.patch.JsonPatch;
@@ -14,25 +17,29 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @NullMarked
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final BenchRepository benchRepository;
     private final PasswordEncoder passwordEncoder;
     private final JsonMapper mapper;
 
     @Autowired
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, JsonMapper mapper) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository, BenchRepository benchRepository, PasswordEncoder passwordEncoder, JsonMapper mapper) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.benchRepository = benchRepository;
         this.passwordEncoder = passwordEncoder;
         this.mapper = mapper;
     }
@@ -103,5 +110,35 @@ public class UserService implements UserDetailsService {
 
     public void delete(String userID) {
         userRepository.findByUserID(userID).ifPresent(userRepository::delete);
+    }
+
+    // --- METODY DO OBSŁUGI ULUBIONYCH ŁAWEK ---
+
+    @Transactional
+    public void addFavoriteBench(String userID, Long benchID) throws UsernameNotFoundException, BenchNotFoundException {
+        gal.usc.etse.es.restdemo.model.entity.User user = loadUserByUsername(userID);
+        gal.usc.etse.es.restdemo.model.entity.Bench bench = benchRepository.findById(benchID)
+                .orElseThrow(() -> new BenchNotFoundException(benchID));
+
+        user.getFavoriteBenches().add(bench);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void removeFavoriteBench(String userID, Long benchID) throws UsernameNotFoundException, BenchNotFoundException {
+        gal.usc.etse.es.restdemo.model.entity.User user = loadUserByUsername(userID);
+        gal.usc.etse.es.restdemo.model.entity.Bench bench = benchRepository.findById(benchID)
+                .orElseThrow(() -> new BenchNotFoundException(benchID));
+
+        user.getFavoriteBenches().remove(bench);
+        userRepository.save(user);
+    }
+
+    @Transactional(readOnly = true)
+    public Set<Bench> getFavoriteBenches(String userID) throws UsernameNotFoundException {
+        gal.usc.etse.es.restdemo.model.entity.User user = loadUserByUsername(userID);
+        return user.getFavoriteBenches().stream()
+                .map(Bench::from)
+                .collect(Collectors.toSet());
     }
 }

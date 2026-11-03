@@ -13,16 +13,14 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
-import java.security.*;
-
 @Configuration
-@EnableMethodSecurity()
+@EnableMethodSecurity
 public class SecurityConfiguration {
-    JWTFilter jwtFilter;
-    AuthenticationService authenticationService;
+    private final JWTFilter jwtFilter;
+    private final AuthenticationService authenticationService;
 
     @Autowired
-    public SecurityConfiguration(JWTFilter jwtFilter,  AuthenticationService authenticationService) {
+    public SecurityConfiguration(JWTFilter jwtFilter, AuthenticationService authenticationService) {
         this.jwtFilter = jwtFilter;
         this.authenticationService = authenticationService;
     }
@@ -33,11 +31,10 @@ public class SecurityConfiguration {
                         authorize.requestMatchers("/auth/**").permitAll()
                                 .requestMatchers("/error").permitAll()
                                 .requestMatchers("/docs/**").permitAll()
-                                .requestMatchers("/", "/index.html", "/favicon.ico").permitAll()
-                                .requestMatchers("/*.js", "/*.css", "/*.html", "/assets/**").permitAll()
+                                .requestMatchers("/", "/index.html", "/favicon.*").permitAll()
+                                .requestMatchers("/*.js", "/*.css", "/*.html", "/*.png", "/*.ico", "/assets/**").permitAll()
                                 .requestMatchers("/img/**").permitAll()
                                 .anyRequest().authenticated()
-
                 )
                 .csrf(AbstractHttpConfigurer::disable)
                 .addFilterAfter(jwtFilter, BasicAuthenticationFilter.class)

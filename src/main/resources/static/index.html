@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bancos para sentar</title>
+  <link rel="icon" type="image/png" href="/favicon.png?v=1">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800">
@@ -75,6 +76,7 @@
 
       <nav class="flex gap-2 mb-6">
         <button class="tabBtn bg-blue-600 text-white px-4 py-2 rounded" data-tab="benches">Bancos</button>
+        <button class="tabBtn bg-slate-200 px-4 py-2 rounded" data-tab="favorites">Favoritos ⭐</button>
         <button class="tabBtn bg-slate-200 px-4 py-2 rounded" data-tab="photos">Fotos</button>
         <button class="tabBtn bg-slate-200 px-4 py-2 rounded" data-tab="reviews">Valoracións</button>
         <button class="tabBtn bg-slate-200 px-4 py-2 rounded" data-tab="profile">Perfil</button>
@@ -95,7 +97,13 @@
           <div id="benchGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
       </div>
-
+      <!-- Favorites Tab -->
+      <div id="favoritesTab" class="tabContent hidden space-y-4">
+        <div class="bg-white shadow rounded-xl p-4">
+          <h2 class="font-semibold mb-3">Os meus bancos favoritos ⭐</h2>
+          <div id="favoriteGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </div>
+      </div>
       <!-- Photos -->
       <div id="photosTab" class="tabContent hidden space-y-4">
         <div class="bg-white shadow rounded-xl p-4">
@@ -244,12 +252,23 @@ document.querySelectorAll('.tabBtn').forEach(btn=>{
     btn.className='tabBtn bg-blue-600 text-white px-4 py-2 rounded';
     document.querySelectorAll('.tabContent').forEach(c=>c.classList.add('hidden'));
     document.getElementById(tab+'Tab').classList.remove('hidden');
+    if(tab==='favorites') loadFavorites();
   });
 });
 
 function msg(t,cls='text-red-600'){ const m=document.getElementById('msg'); m.textContent=t; m.className='mt-4 text-sm '+cls; }
 
+let userFavoriteIds = new Set();
+async function fetchFavoriteIds(){
+  try{
+    const favs = await api('/benches/favorites');
+    const list = favs.content || favs || [];
+    userFavoriteIds = new Set(list.map(b => b.benchID));
+  }catch(e){ userFavoriteIds = new Set(); }
+}
+
 async function loadBenches(){
+  await fetchFavoriteIds();
   const data=await api('/benches?size=200&sort=-likes');
   const items=data.content||data;
   const grid=document.getElementById('benchGrid');
@@ -260,6 +279,7 @@ async function loadBenches(){
     const card=document.createElement('div');
     card.className='bg-slate-50 rounded-xl overflow-hidden shadow';
     const imgIdx = ((b.benchID-1) % 30) + 1;
+    const isFav = userFavoriteIds.has(b.benchID);
     card.innerHTML=`
       <img src="/img/img${imgIdx}.jpg" class="w-full h-48 object-cover" alt="Banco ${b.benchID}">
       <div class="p-3 space-y-2">
@@ -267,13 +287,28 @@ async function loadBenches(){
           <h3 class="font-semibold">${b.type} #${b.benchID}</h3>
           <span class="text-sm text-slate-500">${b.cords}</span>
         </div>
-        <div class="flex items-center gap-3">
-          <button class="likeBtn bg-pink-100 text-pink-700 px-3 py-1 rounded hover:bg-pink-200">❤ ${b.likes??0}</button>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <button class="likeBtn bg-pink-100 text-pink-700 px-3 py-1 rounded hover:bg-pink-200 text-sm">❤ ${b.likes??0}</button>
+            <button class="favBtn ${isFav ? 'bg-amber-400 text-white' : 'bg-slate-200 text-slate-700'} px-3 py-1 rounded text-sm hover:opacity-80">
+              ${isFav ? '⭐ Gardado' : '☆ Gardar'}
+            </button>
+          </div>
           <button class="delBtn text-red-600 text-sm">Borrar</button>
         </div>
       </div>`;
     card.querySelector('.likeBtn').addEventListener('click', async ()=>{
       try{ await api('/benches/'+b.benchID+'/like',{method:'POST'}); loadBenches(); }catch(e){ msg(e.message); }
+    });
+    card.querySelector('.favBtn').addEventListener('click', async ()=>{
+      try{
+        if(userFavoriteIds.has(b.benchID)){
+          await api('/benches/'+b.benchID+'/favorite',{method:'DELETE'});
+        } else {
+          await api('/benches/'+b.benchID+'/favorite',{method:'POST'});
+        }
+        await loadBenches();
+      }catch(e){ msg(e.message); }
     });
     card.querySelector('.delBtn').addEventListener('click', async ()=>{
       if(!confirm('Borrar banco '+b.benchID+'?')) return;
@@ -283,14 +318,41 @@ async function loadBenches(){
     const opt=document.createElement('option'); opt.value=b.benchID; opt.textContent='#'+b.benchID+' '+b.type; sel.appendChild(opt);
   });
 }
-document.getElementById('benchForm').addEventListener('submit', async(e)=>{
-  e.preventDefault();
+
+async function loadFavorites(){
   try{
-    await api('/benches',{method:'POST',body:JSON.stringify({cords:document.getElementById('benchCords').value,type:document.getElementById('benchType').value})});
-    document.getElementById('benchCords').value=''; document.getElementById('benchType').value='';
-    msg('Banco engadido','text-green-600'); loadBenches();
-  }catch(err){ msg(err.message); }
-});
+    const favs = await api('/benches/favorites');
+    const items = favs.content || favs || [];
+    const grid = document.getElementById('favoriteGrid');
+    grid.innerHTML = '';
+    if(items.length === 0){
+      grid.innerHTML = '<p class="text-slate-500 col-span-2">Aínda non tes bancos favoritos gardados.</p>';
+      return;
+    }
+    items.forEach(b=>{
+      const card = document.createElement('div');
+      card.className = 'bg-slate-50 rounded-xl overflow-hidden shadow';
+      const imgIdx = ((b.benchID-1) % 30) + 1;
+      card.innerHTML = `
+        <img src="/img/img${imgIdx}.jpg" class="w-full h-48 object-cover" alt="Banco ${b.benchID}">
+        <div class="p-3 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold">${b.type} #${b.benchID}</h3>
+            <span class="text-sm text-slate-500">${b.cords}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-pink-600 text-sm font-medium">❤ ${b.likes??0} likes</span>
+            <button class="removeFavBtn bg-red-100 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-200">Quitar</button>
+          </div>
+        </div>`;
+      card.querySelector('.removeFavBtn').addEventListener('click', async ()=>{
+        await api('/benches/'+b.benchID+'/favorite',{method:'DELETE'});
+        loadFavorites();
+      });
+      grid.appendChild(card);
+    });
+  }catch(e){ msg(e.message); }
+}
 
 async function loadPhotos(){
   const data=await api('/photos');

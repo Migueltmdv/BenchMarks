@@ -1,9 +1,9 @@
 package gal.usc.etse.es.restdemo.controller;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import gal.usc.etse.es.restdemo.exception.BenchNotFoundException;
 import gal.usc.etse.es.restdemo.model.dto.Bench;
 import gal.usc.etse.es.restdemo.service.BenchService;
+import gal.usc.etse.es.restdemo.service.UserService;
 import gal.usc.etse.es.utils.patch.JsonPatchOperation;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.NullMarked;
@@ -16,17 +16,21 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 
+import java.security.Principal;
 import java.util.List;
+import java.util.Set;
 
 @NullMarked
 @RestController
 @RequestMapping("benches")
 public class BenchController {
     private final BenchService benches;
+    private final UserService userService;
 
     @Autowired
-    public BenchController(BenchService benches) {
+    public BenchController(BenchService benches, UserService userService) {
         this.benches = benches;
+        this.userService = userService;
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -41,6 +45,30 @@ public class BenchController {
         return ResponseEntity.ok(benches.getBenches(type, q, PageRequest.of(page, pagesize,
                 Sort.by(sort.stream().map(key -> key.startsWith("-") ? Sort.Order.desc(key.substring(1)) : Sort.Order.asc(key)).toList()))));
     }
+
+    // --- ENDPOINTY DLA ULUBIONYCH (FAVORITOS) ---
+
+    @GetMapping(path = "favorites", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<Set<Bench>> getFavorites(Principal principal) {
+        return ResponseEntity.ok(userService.getFavoriteBenches(principal.getName()));
+    }
+
+    @PostMapping(path = "{id}/favorite", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<Void> addFavorite(@PathVariable("id") Long id, Principal principal) throws BenchNotFoundException {
+        userService.addFavoriteBench(principal.getName(), id);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping(path = "{id}/favorite")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<Void> removeFavorite(@PathVariable("id") Long id, Principal principal) throws BenchNotFoundException {
+        userService.removeFavoriteBench(principal.getName(), id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // --------------------------------------------
 
     @GetMapping(path = "{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
