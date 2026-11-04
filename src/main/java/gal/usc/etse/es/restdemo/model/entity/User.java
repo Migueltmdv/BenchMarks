@@ -17,19 +17,17 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name="users")
 public class User implements UserDetails {
-    
-    // --- NUEVOS ATRIBUTOS DEL PROYECTO ---
+
     @Id
     @Column(name = "user_id")
     private String userID;
-    
+
     private String name;
     private String lastName;
     private String nickname;
     private LocalDate birthday;
     private String location;
 
-    // --- ATRIBUTOS DE SEGURIDAD MANTENIDOS ---
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -37,6 +35,13 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role"))
     private Set<Role> roles;
+
+    // --- RELACJA DO ULUBIONYCH ŁAWEK ---
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "user_favorite_benches",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "bench_id"))
+    private Set<Bench> favoriteBenches = new HashSet<>();
 
     public static User from(gal.usc.etse.es.restdemo.model.dto.User user, org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
         if (user == null) return null;
@@ -52,7 +57,6 @@ public class User implements UserDetails {
         );
     }
 
-    // --- CONSTRUCTORES ---
     public User() {}
 
     public User(String userID, String name, String lastName, String nickname, LocalDate birthday, String location, String password, Set<Role> roles) {
@@ -64,9 +68,9 @@ public class User implements UserDetails {
         this.location = location;
         this.password = password;
         this.roles = roles;
+        this.favoriteBenches = new HashSet<>();
     }
 
-    // --- MÉTODOS DE SPRING SECURITY (UserDetails) ---
     @Override
     @NonNull
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -85,13 +89,9 @@ public class User implements UserDetails {
     @Override
     @NonNull
     public String getUsername() {
-        // En Spring Security "username" es el identificador único. Usamos userID.
-        // Si prefieres que inicien sesión con su nickname, cambia esto por 'return nickname;'
-        return userID; 
+        return userID;
     }
 
-    // --- GETTERS Y SETTERS ---
-    
     @NonNull
     public Set<Role> getRoles() {
         return roles;
@@ -107,6 +107,19 @@ public class User implements UserDetails {
             this.roles = new HashSet<>();
         }
         this.roles.add(role);
+        return this;
+    }
+
+    // Gettery i Settery dla ulubionych
+    public Set<Bench> getFavoriteBenches() {
+        if (favoriteBenches == null) {
+            favoriteBenches = new HashSet<>();
+        }
+        return favoriteBenches;
+    }
+
+    public User setFavoriteBenches(Set<Bench> favoriteBenches) {
+        this.favoriteBenches = favoriteBenches;
         return this;
     }
 

@@ -2,6 +2,7 @@ package gal.usc.etse.es.restdemo.model.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import java.util.Objects;
 
 @Entity
 @Table(name = "benches")
@@ -57,4 +58,18 @@ public class Bench {
 
     public Integer getLikes() { return likes; }
     public Bench setLikes(Integer likes) { this.likes = likes == null ? 0 : likes; return this; }
+
+    // Dopisane metody ułatwiające działanie Set<Bench> w encji User
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Bench bench = (Bench) o;
+        return Objects.equals(benchID, bench.benchID);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(benchID);
+    }
 }

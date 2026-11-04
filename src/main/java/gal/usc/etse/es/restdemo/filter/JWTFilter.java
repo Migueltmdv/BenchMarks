@@ -1,7 +1,6 @@
 package gal.usc.etse.es.restdemo.filter;
 
 import gal.usc.etse.es.restdemo.model.dto.User;
-import gal.usc.etse.es.restdemo.repository.RoleRepository;
 import gal.usc.etse.es.restdemo.service.AuthenticationService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -33,23 +32,28 @@ public class JWTFilter extends OncePerRequestFilter {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain chain
-    ) throws ServletException, IOException, JwtException {
+    ) throws ServletException, IOException {
         String token = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if(token == null || !token.startsWith("Bearer ")){
+        if (token == null || !token.startsWith("Bearer ")) {
             chain.doFilter(request, response);
             return;
         }
 
-        User user = authenticationService.parseJWT(token.replaceFirst("^Bearer ", ""));
+        try {
+            User user = authenticationService.parseJWT(token.replaceFirst("^Bearer ", ""));
 
-        UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(
-                user.userID(),
-                user.password(),
-                user.roles().stream().map(role -> new SimpleGrantedAuthority("ROLE_"+role)).toList()
-        );
+            UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(
+                    user.userID(),
+                    user.password(),
+                    user.roles().stream().map(role -> new SimpleGrantedAuthority("ROLE_" + role)).toList()
+            );
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        } catch (JwtException e) {
+            // Gdy token wygasł lub jest niepoprawny: czyścimy autoryzację i nie rzucamy błędem 500
+            SecurityContextHolder.clearContext();
+        }
 
         chain.doFilter(request, response);
     }
