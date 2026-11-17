@@ -6,6 +6,12 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
+/**
+ * Valoración (reseña) de un banco hecha por un usuario.
+ * - reviewer y benchOfReview son claves foráneas (ManyToOne, carga LAZY).
+ * - photo es opcional y se guarda en la tabla de fotos.
+ * - 'mark' está validada entre 0 y 10.
+ */
 @Entity
 @Table(name = "valoraciones")
 @SuppressWarnings("unused")
@@ -15,16 +21,20 @@ public class Valoracion {
     @Column(name = "review_id")
     private Long reviewId;
 
+    // Autor de la valoración (FK 'reviewer_id' -> users.user_id).
+    // LAZY: no se carga el usuario completo hasta que se necesita.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reviewer_id")
     @NotNull
     private User reviewer;
 
+    // Banco valorado (FK 'bench_id' -> benches.bench_id).
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bench_id")
     @NotNull
     private Bench benchOfReview;
 
+    // Foto opcional adjunta a la valoración.
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "photo_id")
     private Photo photo;

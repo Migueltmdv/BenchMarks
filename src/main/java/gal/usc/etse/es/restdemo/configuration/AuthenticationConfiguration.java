@@ -16,6 +16,12 @@ import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 
+/**
+ * Define los beans base de la autenticación:
+ * - PasswordEncoder: codifica y valida contraseñas ({noop}, {bcrypt}...).
+ * - AuthenticationManager: valida usuario/contraseña con UserDetailsService.
+ * - KeyPair: par de claves RSA leído de keys.p12 para firmar y verificar JWT.
+ */
 @Configuration
 public class AuthenticationConfiguration {
     @Value("${keystore.location:classpath:keys.p12}")

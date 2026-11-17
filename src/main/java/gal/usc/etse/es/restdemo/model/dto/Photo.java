@@ -1,5 +1,10 @@
 package gal.usc.etse.es.restdemo.model.dto;
 
+/**
+ * DTO con los metadatos de una foto.
+ * No incluye la imagen (imageData): el binario se descarga aparte
+ * desde /photos/{id}/image.
+ */
 public record Photo (
         Long photoID,
         String resolution,

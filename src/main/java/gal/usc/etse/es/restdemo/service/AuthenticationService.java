@@ -30,6 +30,14 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Servicio central de autenticación.
+ * - login: valida credenciales y emite un JWT firmado (RS256).
+ * - login(refreshToken): renueva el JWT a partir del token guardado en Redis.
+ * - regenerate/invalidate: gestionan los refresh tokens (TTL de 7 días).
+ * - parseJWT: verifica el token y devuelve el usuario.
+ * - loadRoleHierarchy: traduce roles y permisos de la BD a Spring Security.
+ */
 @Service
 public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
@@ -68,14 +76,18 @@ public class AuthenticationService {
     )
     @ConcurrencyLimit(10)
     public User login(User user) throws AuthenticationException {
+        // 1. Spring Security valida el usuario y la contraseña (DaoAuthenticationProvider).
         Authentication auth = authenticationManager.authenticate(UsernamePasswordAuthenticationToken.unauthenticated(user.userID(), user.password()));
 
+        // 2. Se recogen las autoridades (ROLE_USER, ROLE_ADMIN...) para el claim.
         List<String> roles = auth.getAuthorities()
                 .stream()
                 .filter(authority -> authority instanceof SimpleGrantedAuthority)
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
+        // 3. Se construye y firma el JWT (15 minutos por defecto).
+        //    El subject es el userID y el claim "roles" viaja dentro del token.
         String token = Jwts.builder()
                 .subject(auth.getName())
                 .issuedAt(Date.from(Instant.now()))
@@ -85,21 +97,27 @@ public class AuthenticationService {
                 .signWith(keyPair.getPrivate())
                 .compact();
 
+        // 4. El DTO transporta el token en el campo password; el controller
+        //    lo copia a la cabecera Authorization y no lo serializa.
         return new User(user.userID(), null, null, null, null, null, token, new HashSet<>(roles));
     }
 
     public User login(String refreshToken) throws InvalidRefreshTokenException {
+        // El refresh token es un UUID guardado en Redis -> usuario.
         Optional<RefreshToken> token = refreshTokenRepository.findByToken(refreshToken);
 
         if (token.isPresent()) {
             var user = userRepository.findByUserID(token.get().getUser()).orElseThrow(() -> new UsernameNotFoundException(token.get().getUser()));
 
+            // Reutiliza el login normal; el DTO del usuario ya trae el hash
+            // de la contraseña almacenado, que sirve para reautenticar.
             return login(User.from(user));
         }
 
         throw new InvalidRefreshTokenException(refreshToken);
     }
 
+    // Rotación: se eliminan los refresh tokens previos del usuario y se crea uno nuevo.
     public String regenerateRefreshToken(User user) {
         UUID uuid = UUID.randomUUID();
         RefreshToken refreshToken = new RefreshToken(uuid.toString(), user.userID(), refreshTTL.toSeconds());
@@ -109,11 +127,13 @@ public class AuthenticationService {
         return refreshToken.getToken();
     }
 
+    // Logout: invalida todas las sesiones de refresh del usuario.
     public void invalidateTokens(String username) {
         refreshTokenRepository.deleteAllByUser(username);
     }
 
     public User parseJWT(String token) throws JwtException {
+        // Verifica la firma con la clave pública y extrae el payload.
         Claims claims = Jwts.parser()
                 .verifyWith(keyPair.getPublic())
                 .build()
@@ -130,6 +150,8 @@ public class AuthenticationService {
         }
     }
 
+    // Traduce las tablas role_hierarchy y role_permissions a la jerarquía
+    // que entiende Spring Security (ADMIN incluye USER, etc.).
     public RoleHierarchy loadRoleHierarchy() {
         RoleHierarchyImpl.Builder builder = RoleHierarchyImpl.withRolePrefix("");
 

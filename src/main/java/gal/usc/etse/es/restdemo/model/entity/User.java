@@ -13,6 +13,14 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Entidad de usuario (tabla 'users') que además implementa UserDetails.
+ * - userID es la PK y también el nombre de usuario para Spring Security.
+ * - roles: N:M con 'roles' (tabla user_roles); se cargan EAGER para construir
+ *   las autoridades en cada autenticación.
+ * - favoriteBenches: N:M con 'benches' (tabla user_favorite_benches).
+ * - La contraseña nunca se guarda en claro: se codifica al crear o actualizar.
+ */
 @SuppressWarnings("unused")
 @Entity
 @Table(name="users")
@@ -30,13 +38,16 @@ public class User implements UserDetails {
 
     private String password;
 
+    // Roles del usuario (N:M con la tabla 'roles').
+    // Se cargan EAGER porque Spring Security los necesita al autenticar.
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role"))
     private Set<Role> roles;
 
-    // --- RELACJA DO ULUBIONYCH ŁAWEK ---
+    // Bancos favoritos (N:M con 'benches' mediante 'user_favorite_benches').
+    // Es LAZY: solo se carga al consultar los favoritos del usuario.
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_favorite_benches",
             joinColumns = @JoinColumn(name = "user_id"),

@@ -4,6 +4,11 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+/**
+ * Entidad de foto (tabla 'photos').
+ * Guarda los metadatos y la imagen binaria en la columna 'image_data' (bytea).
+ * El binario no se serializa a JSON: se sirve mediante /photos/{id}/image.
+ */
 @Entity
 @Table(name = "photos")
 @SuppressWarnings("unused")
@@ -20,6 +25,14 @@ public class Photo {
     @Column
     @NotNull
     private Long size;
+
+    @Column(name = "content_type")
+    private String contentType;
+
+    // Bytes reales de la imagen. No se envía en el JSON: se sirve aparte
+    // mediante GET /photos/{id}/image.
+    @Column(name = "image_data", columnDefinition = "bytea")
+    private byte[] imageData;
 
     public static Photo from(gal.usc.etse.es.restdemo.model.dto.Photo photoDTO) {
         if (photoDTO == null) return null;
@@ -46,4 +59,10 @@ public class Photo {
 
     public Long getSize() { return size; }
     public Photo setSize(Long size) { this.size = size; return this; }
+
+    public String getContentType() { return contentType; }
+    public Photo setContentType(String contentType) { this.contentType = contentType; return this; }
+
+    public byte[] getImageData() { return imageData; }
+    public Photo setImageData(byte[] imageData) { this.imageData = imageData; return this; }
 }

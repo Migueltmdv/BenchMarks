@@ -8,6 +8,12 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * DTO de usuario para peticiones y respuestas.
+ * - @JsonAlias permite recibir 'username' al hacer login.
+ * - @JsonView: Public oculta password/roles; Private (no usado) los incluye.
+ * - from(entity) nunca expone la entidad ni sus relaciones JPA.
+ */
 public record User (
         @JsonView(Views.Public.class)
         @JsonAlias("username")

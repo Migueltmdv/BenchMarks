@@ -8,6 +8,11 @@ import org.springframework.stereotype.Repository;
 import java.util.Collection;
 import java.util.Optional;
 
+/**
+ * Repositorio CRUD de refresh tokens en Redis.
+ * findByToken busca el UUID y deleteAllByUser invalida todas las sesiones
+ * de un usuario (logout o rotación del token).
+ */
 @SuppressWarnings("UnusedReturnValue")
 @NullMarked
 @Repository

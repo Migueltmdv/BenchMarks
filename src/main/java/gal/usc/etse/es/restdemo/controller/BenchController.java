@@ -20,6 +20,12 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * CRUD de bancos y acciones sociales (like y favoritos).
+ * - Listado paginado con filtros por tipo/texto y ordenación.
+ * - Los favoritos se resuelven con el usuario autenticado (Principal).
+ * - El borrado está restringido al rol ADMIN.
+ */
 @NullMarked
 @RestController
 @RequestMapping("benches")
@@ -33,6 +39,7 @@ public class BenchController {
         this.userService = userService;
     }
 
+    // Listado paginado. 'sort=campo' ordena ascendente y 'sort=-campo' descendente.
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<?> get(
@@ -46,7 +53,7 @@ public class BenchController {
                 Sort.by(sort.stream().map(key -> key.startsWith("-") ? Sort.Order.desc(key.substring(1)) : Sort.Order.asc(key)).toList()))));
     }
 
-    // --- ENDPOINTY DLA ULUBIONYCH (FAVORITOS) ---
+    // --- Favoritos del usuario autenticado (Principal = sub del JWT) ---
 
     @GetMapping(path = "favorites", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
@@ -84,6 +91,7 @@ public class BenchController {
                 .body(created);
     }
 
+    // PATCH con JSON Patch (RFC 6902): [{ "op": "replace", "path": "/type", "value": "Metal" }]
     @PatchMapping(path = "{id}", consumes = "application/json-patch+json", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<Bench> update(@PathVariable("id") Long id, @RequestBody List<JsonPatchOperation> changes) throws BenchNotFoundException {
@@ -96,8 +104,9 @@ public class BenchController {
         return ResponseEntity.ok(benches.likeBench(id));
     }
 
+    // Solo un ADMIN puede borrar un banco (el botón del frontend también se oculta).
     @DeleteMapping(path = "{id}")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable("id") Long id) throws BenchNotFoundException {
         benches.deleteBench(id);
         return ResponseEntity.noContent().build();

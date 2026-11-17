@@ -13,6 +13,11 @@ import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 
+/**
+ * Metadatos de OpenAPI: título, contacto, licencia y servidores.
+ * Declara el esquema de seguridad 'jwt' (Bearer) para que Swagger pueda
+ * autenticarse y probar los endpoints protegidos.
+ */
 @Configuration
 @SecuritySchemes({
         @SecurityScheme(

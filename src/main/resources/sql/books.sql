@@ -1,3 +1,10 @@
+-- ============================================================
+-- BANCOS DE EJEMPLO (tabla 'benches').
+-- El fichero conserva el nombre 'books.sql' del proyecto original.
+-- 'cords' es "latitud,longitud" y 'likes' es el contador de "me gusta".
+-- No se asigna photo_id: estos bancos usan la imagen de fallback del frontend.
+-- ============================================================
+
 TRUNCATE benches CASCADE;
 
 INSERT INTO benches(bench_id, cords, type, likes) VALUES
@@ -23,5 +30,5 @@ INSERT INTO benches(bench_id, cords, type, likes) VALUES
 (20, '40.6350,-3.1670', 'Concrete', 1);
 
 
--- Avanza la secuencia para que los POST no choquen con los IDs insertados a mano
+-- Avanza la secuencia para que los POST no choquen con los IDs insertados a mano.
 SELECT setval(pg_get_serial_sequence('benches', 'bench_id'), (SELECT MAX(bench_id) FROM benches));

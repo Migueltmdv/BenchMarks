@@ -23,6 +23,10 @@ import tools.jackson.databind.json.JsonMapper;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Lógica de negocio de valoraciones: alta (resolviendo usuario, banco y foto),
+ * listados filtrados, consulta, edición con JSON Patch y borrado.
+ */
 @Service
 @NullMarked
 public class ValoracionService {
@@ -41,6 +45,7 @@ public class ValoracionService {
         this.mapper = mapper;
     }
 
+    // Alta: resuelve las entidades referenciadas y crea la foto si viene suelta.
     public Valoracion addValoracion(Valoracion dto) {
         User reviewer = users.findByUserID(dto.reviewer().userID()).orElseThrow();
         Bench bench = benches.findById(dto.benchOfReview().benchID()).orElseThrow();
@@ -62,6 +67,7 @@ public class ValoracionService {
         return Valoracion.from(reviews.save(entity));
     }
 
+    // Listado filtrable por banco o por autor; si no hay filtro, devuelve todo.
     public Page<Valoracion> getValoraciones(Long benchId, String userId, PageRequest page) {
         if (benchId != null) return reviews.findByBenchOfReview_BenchID(benchId, page).map(Valoracion::from);
         if (userId != null && !userId.isBlank()) return reviews.findByReviewer_UserID(userId, page).map(Valoracion::from);
@@ -72,6 +78,7 @@ public class ValoracionService {
         return reviews.findById(id).map(Valoracion::from).orElseThrow(() -> new ValoracionNotFoundException(id));
     }
 
+    // PATCH: solo se permite modificar nota, comentario y fecha.
     public Valoracion updateValoracion(Long id, List<JsonPatchOperation> changes) throws ValoracionNotFoundException {
         Valoracion review = reviews.findById(id).map(Valoracion::from).orElseThrow(() -> new ValoracionNotFoundException(id));
         JsonNode patched = JsonPatch.apply(changes, mapper.convertValue(review, JsonNode.class));

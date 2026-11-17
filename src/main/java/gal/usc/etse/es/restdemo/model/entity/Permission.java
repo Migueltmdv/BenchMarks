@@ -4,6 +4,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+/**
+ * Permiso granular de la aplicación (por ejemplo 'users:read').
+ * Se asigna a roles mediante la tabla role_permissions.
+ * La jerarquía de roles los convierte en autoridades tipo 'users:read'.
+ */
 @SuppressWarnings("unused")
 @Entity
 @Table(name = "permissions")

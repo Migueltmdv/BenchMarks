@@ -77,8 +77,6 @@
       <nav class="flex gap-2 mb-6">
         <button class="tabBtn bg-blue-600 text-white px-4 py-2 rounded" data-tab="benches">Bancos</button>
         <button class="tabBtn bg-slate-200 px-4 py-2 rounded" data-tab="favorites">Favoritos ⭐</button>
-        <button class="tabBtn bg-slate-200 px-4 py-2 rounded" data-tab="photos">Fotos</button>
-        <button class="tabBtn bg-slate-200 px-4 py-2 rounded" data-tab="reviews">Valoracións</button>
         <button class="tabBtn bg-slate-200 px-4 py-2 rounded" data-tab="profile">Perfil</button>
       </nav>
 
@@ -86,9 +84,14 @@
       <div id="benchesTab" class="tabContent space-y-4">
         <div class="bg-white shadow rounded-xl p-4">
           <h2 class="font-semibold mb-3">Engadir banco</h2>
-          <form id="benchForm" class="flex flex-wrap gap-2">
+          <form id="benchForm" class="flex flex-wrap gap-2 items-start">
             <input id="benchCords" class="border rounded px-3 py-2 flex-1" placeholder="Coordenadas (lat,lon)" required>
             <input id="benchType" class="border rounded px-3 py-2 flex-1" placeholder="Tipo" required>
+            <label class="flex flex-col text-sm text-slate-600">
+              <span class="mb-1">Foto do dispositivo</span>
+              <input id="benchPhoto" type="file" accept="image/*" class="border rounded px-3 py-1.5 bg-slate-50">
+            </label>
+            <img id="benchPhotoPreview" class="hidden w-16 h-16 object-cover rounded border" alt="Previsualización">
             <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Engadir</button>
           </form>
         </div>
@@ -102,42 +105,6 @@
         <div class="bg-white shadow rounded-xl p-4">
           <h2 class="font-semibold mb-3">Os meus bancos favoritos ⭐</h2>
           <div id="favoriteGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-        </div>
-      </div>
-      <!-- Photos -->
-      <div id="photosTab" class="tabContent hidden space-y-4">
-        <div class="bg-white shadow rounded-xl p-4">
-          <h2 class="font-semibold mb-3">Engadir foto (metadatos)</h2>
-          <form id="photoForm" class="flex flex-wrap gap-2">
-            <input id="photoRes" class="border rounded px-3 py-2 flex-1" placeholder="Resolución" required>
-            <input id="photoSize" type="number" class="border rounded px-3 py-2 flex-1" placeholder="Tamaño (bytes)" required>
-            <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Engadir</button>
-          </form>
-        </div>
-        <div class="bg-white shadow rounded-xl p-4">
-          <table class="w-full text-sm">
-            <thead class="bg-slate-50"><tr><th class="p-2">Img</th><th class="text-left p-2">ID</th><th class="text-left p-2">Resolución</th><th class="text-left p-2">Tamaño</th><th class="p-2"></th></tr></thead>
-            <tbody id="photoTable"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Reviews -->
-      <div id="reviewsTab" class="tabContent hidden space-y-4">
-        <div class="bg-white shadow rounded-xl p-4">
-          <h2 class="font-semibold mb-3">Nova valoración</h2>
-          <form id="reviewForm" class="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <select id="reviewBench" class="border rounded px-3 py-2"></select>
-            <input id="reviewMark" type="number" min="0" max="10" class="border rounded px-3 py-2" placeholder="Nota (0-10)" required>
-            <input id="reviewNote" class="border rounded px-3 py-2" placeholder="Comentario">
-            <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 md:col-span-3">Enviar</button>
-          </form>
-        </div>
-        <div class="bg-white shadow rounded-xl p-4">
-          <table class="w-full text-sm">
-            <thead class="bg-slate-50"><tr><th class="text-left p-2">ID</th><th class="text-left p-2">Banco</th><th class="text-left p-2">Nota</th><th class="text-left p-2">Comentario</th><th class="p-2"></th></tr></thead>
-            <tbody id="reviewTable"></tbody>
-          </table>
         </div>
       </div>
 
@@ -159,6 +126,24 @@
 
       <div id="msg" class="mt-4 text-sm text-red-600"></div>
     </section>
+
+    <!-- Modal de valoracións dun banco -->
+    <div id="reviewsModal" class="hidden fixed inset-0 bg-black/50 items-center justify-center p-4 z-50">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col">
+        <header class="flex items-center justify-between p-4 border-b">
+          <h3 id="reviewsModalTitle" class="font-semibold text-lg"></h3>
+          <button id="closeReviewsModal" class="text-slate-400 hover:text-slate-800 text-2xl leading-none">&times;</button>
+        </header>
+        <div class="p-4 border-b bg-slate-50">
+          <form id="reviewForm" class="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <input id="reviewMark" type="number" min="0" max="10" class="border rounded px-3 py-2" placeholder="Nota (0-10)" required>
+            <input id="reviewNote" class="border rounded px-3 py-2 md:col-span-2" placeholder="Comentario">
+            <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 md:col-span-3">Enviar valoración</button>
+          </form>
+        </div>
+        <div id="reviewsModalBody" class="p-4 overflow-y-auto space-y-3"></div>
+      </div>
+    </div>
   </div>
 
 <script>
@@ -166,6 +151,20 @@ const API = '';
 function token(){ return localStorage.getItem('token'); }
 function setToken(t){ localStorage.setItem('token', t); }
 function clearToken(){ localStorage.removeItem('token'); }
+function jwtPayload(){
+  try{
+    const part=token().split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    return JSON.parse(atob(part.padEnd(Math.ceil(part.length/4)*4,'=')));
+  }catch(e){ return {}; }
+}
+function currentUserID(){ return jwtPayload().sub || ''; }
+function currentRoles(){
+  const roles=jwtPayload().roles;
+  return Array.isArray(roles) ? roles.map(r=>String(r).toUpperCase()) : [];
+}
+function isAdmin(){
+  return currentRoles().some(r=>r==='ADMIN' || r==='ROLE_ADMIN');
+}
 async function api(path, options={}){
   const headers = Object.assign({'Content-Type':'application/json'}, options.headers||{});
   if(token()) headers.Authorization = 'Bearer '+token();
@@ -240,7 +239,7 @@ function showLogin(){
 function showApp(user){
   document.getElementById('loginView').classList.add('hidden');
   document.getElementById('appView').classList.remove('hidden');
-  document.getElementById('whoami').textContent='Usuario: '+user;
+  document.getElementById('whoami').textContent='Usuario: '+user+(isAdmin()?' · admin':'');
   loadAll();
 }
 
@@ -267,36 +266,38 @@ async function fetchFavoriteIds(){
   }catch(e){ userFavoriteIds = new Set(); }
 }
 
+function fallbackImg(benchID){ return '/img/img'+(((benchID-1)%30)+1)+'.jpg'; }
+function benchImgSrc(b){ return b.photo && b.photo.photoID ? '/photos/'+b.photo.photoID+'/image' : fallbackImg(b.benchID); }
+function esc(value){ return String(value??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
 async function loadBenches(){
   await fetchFavoriteIds();
   const data=await api('/benches?size=200&sort=-likes');
   const items=data.content||data;
   const grid=document.getElementById('benchGrid');
   grid.innerHTML='';
-  const sel=document.getElementById('reviewBench');
-  sel.innerHTML='';
   (items||[]).forEach(b=>{
     const card=document.createElement('div');
     card.className='bg-slate-50 rounded-xl overflow-hidden shadow';
-    const imgIdx = ((b.benchID-1) % 30) + 1;
     const isFav = userFavoriteIds.has(b.benchID);
     card.innerHTML=`
-      <img src="/img/img${imgIdx}.jpg" class="w-full h-48 object-cover" alt="Banco ${b.benchID}">
+      <img src="${benchImgSrc(b)}" onerror="this.onerror=null;this.src='${fallbackImg(b.benchID)}'" class="w-full h-48 object-cover cursor-pointer hover:opacity-90 transition" alt="Banco ${b.benchID}" title="Preme na foto para ver as valoracións">
       <div class="p-3 space-y-2">
         <div class="flex items-center justify-between">
-          <h3 class="font-semibold">${b.type} #${b.benchID}</h3>
-          <span class="text-sm text-slate-500">${b.cords}</span>
+          <h3 class="font-semibold">${esc(b.type)} #${b.benchID}</h3>
+          <span class="text-sm text-slate-500">${esc(b.cords)}</span>
         </div>
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <button class="likeBtn bg-pink-100 text-pink-700 px-3 py-1 rounded hover:bg-pink-200 text-sm">❤ ${b.likes??0}</button>
-            <button class="favBtn ${isFav ? 'bg-amber-400 text-white' : 'bg-slate-200 text-slate-700'} px-3 py-1 rounded text-sm hover:opacity-80">
-              ${isFav ? '⭐ Gardado' : '☆ Gardar'}
-            </button>
-          </div>
-          <button class="delBtn text-red-600 text-sm">Borrar</button>
+        <div class="flex flex-wrap items-center gap-2">
+          <button class="likeBtn bg-pink-100 text-pink-700 px-3 py-1 rounded hover:bg-pink-200 text-sm">❤ ${b.likes??0}</button>
+          <button class="favBtn ${isFav ? 'bg-amber-400 text-white' : 'bg-slate-200 text-slate-700'} px-3 py-1 rounded text-sm hover:opacity-80">
+            ${isFav ? '⭐ Gardado' : '☆ Gardar'}
+          </button>
+          <button class="revBtn bg-indigo-100 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-200 text-sm">Valoracións</button>
         </div>
+        ${isAdmin() ? '<div class="flex justify-end"><button class="delBtn text-red-600 text-sm">Borrar</button></div>' : ''}
       </div>`;
+    card.querySelector('img').addEventListener('click', ()=>openBenchReviews(b));
+    card.querySelector('.revBtn').addEventListener('click', ()=>openBenchReviews(b));
     card.querySelector('.likeBtn').addEventListener('click', async ()=>{
       try{ await api('/benches/'+b.benchID+'/like',{method:'POST'}); loadBenches(); }catch(e){ msg(e.message); }
     });
@@ -310,12 +311,13 @@ async function loadBenches(){
         await loadBenches();
       }catch(e){ msg(e.message); }
     });
-    card.querySelector('.delBtn').addEventListener('click', async ()=>{
+    const delBtn=card.querySelector('.delBtn');
+    if(delBtn) delBtn.addEventListener('click', async ()=>{
       if(!confirm('Borrar banco '+b.benchID+'?')) return;
-      await api('/benches/'+b.benchID,{method:'DELETE'}); loadBenches(); loadReviews();
+      try{ await api('/benches/'+b.benchID,{method:'DELETE'}); await loadBenches(); }
+      catch(e){ msg(e.message); }
     });
     grid.appendChild(card);
-    const opt=document.createElement('option'); opt.value=b.benchID; opt.textContent='#'+b.benchID+' '+b.type; sel.appendChild(opt);
   });
 }
 
@@ -332,19 +334,23 @@ async function loadFavorites(){
     items.forEach(b=>{
       const card = document.createElement('div');
       card.className = 'bg-slate-50 rounded-xl overflow-hidden shadow';
-      const imgIdx = ((b.benchID-1) % 30) + 1;
       card.innerHTML = `
-        <img src="/img/img${imgIdx}.jpg" class="w-full h-48 object-cover" alt="Banco ${b.benchID}">
+        <img src="${benchImgSrc(b)}" onerror="this.onerror=null;this.src='${fallbackImg(b.benchID)}'" class="w-full h-48 object-cover cursor-pointer hover:opacity-90 transition" alt="Banco ${b.benchID}" title="Preme na foto para ver as valoracións">
         <div class="p-3 space-y-2">
           <div class="flex items-center justify-between">
-            <h3 class="font-semibold">${b.type} #${b.benchID}</h3>
-            <span class="text-sm text-slate-500">${b.cords}</span>
+            <h3 class="font-semibold">${esc(b.type)} #${b.benchID}</h3>
+            <span class="text-sm text-slate-500">${esc(b.cords)}</span>
           </div>
-          <div class="flex items-center justify-between">
+          <div class="flex flex-wrap items-center justify-between gap-2">
             <span class="text-pink-600 text-sm font-medium">❤ ${b.likes??0} likes</span>
-            <button class="removeFavBtn bg-red-100 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-200">Quitar</button>
+            <div class="flex gap-2">
+              <button class="favRevBtn bg-indigo-100 text-indigo-700 px-3 py-1 rounded text-sm hover:bg-indigo-200">Valoracións</button>
+              <button class="removeFavBtn bg-red-100 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-200">Quitar</button>
+            </div>
           </div>
         </div>`;
+      card.querySelector('img').addEventListener('click', ()=>openBenchReviews(b));
+      card.querySelector('.favRevBtn').addEventListener('click', ()=>openBenchReviews(b));
       card.querySelector('.removeFavBtn').addEventListener('click', async ()=>{
         await api('/benches/'+b.benchID+'/favorite',{method:'DELETE'});
         loadFavorites();
@@ -354,55 +360,134 @@ async function loadFavorites(){
   }catch(e){ msg(e.message); }
 }
 
-async function loadPhotos(){
-  const data=await api('/photos');
-  const items=data.content||data;
-  const tbody=document.getElementById('photoTable');
-  tbody.innerHTML='';
-  (items||[]).forEach(p=>{
-    const tr=document.createElement('tr');
-    const imgIdx = ((p.photoID-1) % 30) + 1;
-    tr.innerHTML=`<td class="p-2"><img src="/img/img${imgIdx}.jpg" class="w-16 h-12 object-cover rounded"></td><td class="p-2">${p.photoID}</td><td class="p-2">${p.resolution}</td><td class="p-2">${p.size}</td>
-      <td class="p-2 text-right"><button class="text-red-600" data-id="${p.photoID}">Borrar</button></td>`;
-    tr.querySelector('button').addEventListener('click', async ()=>{ await api('/photos/'+p.photoID,{method:'DELETE'}); loadPhotos(); });
-    tbody.appendChild(tr);
+let currentBench = null;
+
+async function openBenchReviews(b){
+  currentBench = b;
+  document.getElementById('reviewsModalTitle').textContent='Valoracións do banco #'+b.benchID+' ('+b.type+')';
+  document.getElementById('reviewMark').value='';
+  document.getElementById('reviewNote').value='';
+  const modal=document.getElementById('reviewsModal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  await loadBenchReviews();
+}
+
+async function loadBenchReviews(){
+  const body=document.getElementById('reviewsModalBody');
+  if(!currentBench) return;
+  body.innerHTML='<p class="text-slate-500">Cargando...</p>';
+  try{
+    const data=await api('/valoraciones?benchId='+currentBench.benchID+'&size=200');
+    const items=(data.content||data||[]).slice().sort((a,c)=>String(c.date||'').localeCompare(String(a.date||'')));
+    body.innerHTML='';
+    if(items.length===0){ body.innerHTML='<p class="text-slate-500">Este banco aínda non ten valoracións.</p>'; return; }
+    items.forEach(r=>{
+      const u=r.reviewer||{};
+      const nombre=[u.name,u.lastName].filter(Boolean).join(' ');
+      const el=document.createElement('div');
+      el.className='border rounded-xl p-3 bg-slate-50';
+      el.innerHTML=`
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="font-semibold">@${esc(u.userID||'descoñecido')}${nombre?' <span class="font-normal text-slate-500">· '+esc(nombre)+'</span>':''}</p>
+            <p class="text-xs text-slate-500">${esc(r.date||'')}</p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="bg-indigo-600 text-white text-sm font-semibold px-2.5 py-1 rounded-lg">${esc(r.mark)}/10</span>
+            ${isAdmin()?'<button class="delReviewBtn text-red-600 text-sm">Borrar</button>':''}
+          </div>
+        </div>
+        ${r.note?'<p class="mt-2 text-slate-700">'+esc(r.note)+'</p>':''}`;
+      const delBtn=el.querySelector('.delReviewBtn');
+      if(delBtn) delBtn.addEventListener('click', async ()=>{
+        if(!confirm('Borrar a valoración #'+r.reviewId+'?')) return;
+        try{ await api('/valoraciones/'+r.reviewId,{method:'DELETE'}); await loadBenchReviews(); }
+        catch(err){ msg(err.message); }
+      });
+      body.appendChild(el);
+    });
+  }catch(err){ body.innerHTML='<p class="text-red-600">'+esc(err.message)+'</p>'; }
+}
+
+function closeReviewsModal(){
+  const modal=document.getElementById('reviewsModal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+  currentBench = null;
+}
+document.getElementById('closeReviewsModal').addEventListener('click', closeReviewsModal);
+document.getElementById('reviewsModal').addEventListener('click', (e)=>{ if(e.target.id==='reviewsModal') closeReviewsModal(); });
+
+function readImageFile(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onerror=()=>reject(new Error('Non se puido ler a foto'));
+    reader.onload=()=>{
+      const img=new Image();
+      img.onerror=()=>reject(new Error('O ficheiro non é unha imaxe válida'));
+      img.onload=()=>resolve({
+        data: reader.result,
+        resolution: img.naturalWidth+'x'+img.naturalHeight,
+        contentType: file.type||'image/jpeg',
+        size: file.size
+      });
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(file);
   });
 }
-document.getElementById('photoForm').addEventListener('submit', async(e)=>{
+
+document.getElementById('benchPhoto').addEventListener('change', (e)=>{
+  const file=e.target.files && e.target.files[0];
+  const preview=document.getElementById('benchPhotoPreview');
+  if(!file){ preview.classList.add('hidden'); preview.removeAttribute('src'); return; }
+  preview.src=URL.createObjectURL(file);
+  preview.classList.remove('hidden');
+});
+
+document.getElementById('benchForm').addEventListener('submit', async(e)=>{
   e.preventDefault();
+  const cords=document.getElementById('benchCords').value.trim();
+  const type=document.getElementById('benchType').value.trim();
+  const fileInput=document.getElementById('benchPhoto');
   try{
-    await api('/photos',{method:'POST',body:JSON.stringify({resolution:document.getElementById('photoRes').value,size:Number(document.getElementById('photoSize').value)})});
-    document.getElementById('photoRes').value=''; document.getElementById('photoSize').value='';
-    msg('Foto engadida','text-green-600'); loadPhotos();
+    let photo=null;
+    if(fileInput.files && fileInput.files[0]){
+      const img=await readImageFile(fileInput.files[0]);
+      photo=await api('/photos',{method:'POST',body:JSON.stringify({resolution:img.resolution,size:img.size,contentType:img.contentType,data:img.data})});
+    }
+    await api('/benches',{method:'POST',body:JSON.stringify({cords,type,photo: photo?{photoID:photo.photoID}:null})});
+    document.getElementById('benchCords').value='';
+    document.getElementById('benchType').value='';
+    fileInput.value='';
+    const preview=document.getElementById('benchPhotoPreview');
+    preview.classList.add('hidden');
+    preview.removeAttribute('src');
+    msg('Banco engadido','text-green-600');
+    await loadBenches();
   }catch(err){ msg(err.message); }
 });
 
-async function loadReviews(){
-  const data=await api('/valoraciones');
-  const items=data.content||data;
-  const tbody=document.getElementById('reviewTable');
-  tbody.innerHTML='';
-  (items||[]).forEach(r=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td class="p-2">${r.reviewId}</td><td class="p-2">#${r.benchOfReview.benchID}</td><td class="p-2">${r.mark}</td><td class="p-2">${r.note||''}</td>
-      <td class="p-2 text-right"><button class="text-red-600">Borrar</button></td>`;
-    tr.querySelector('button').addEventListener('click', async ()=>{ await api('/valoraciones/'+r.reviewId,{method:'DELETE'}); loadReviews(); });
-    tbody.appendChild(tr);
-  });
-}
 document.getElementById('reviewForm').addEventListener('submit', async(e)=>{
   e.preventDefault();
-  const benchId=Number(document.getElementById('reviewBench').value);
+  if(!currentBench) return;
   try{
-    await api('/valoraciones',{method:'POST',body:JSON.stringify({reviewer:{userID:localStorage.getItem('who')||JSON.parse(atob(token().split('.')[1])).sub},benchOfReview:{benchID:benchId},mark:Number(document.getElementById('reviewMark').value),note:document.getElementById('reviewNote').value})});
+    await api('/valoraciones',{method:'POST',body:JSON.stringify({
+      reviewer:{userID:currentUserID()},
+      benchOfReview:{benchID:currentBench.benchID},
+      mark:Number(document.getElementById('reviewMark').value),
+      note:document.getElementById('reviewNote').value
+    })});
+    document.getElementById('reviewMark').value='';
     document.getElementById('reviewNote').value='';
-    msg('Valoración enviada','text-green-600'); loadReviews();
+    msg('Valoración enviada','text-green-600');
+    await loadBenchReviews();
   }catch(err){ msg(err.message); }
 });
 
 async function loadProfile(){
-  // decode subject
-  const sub=JSON.parse(atob(token().split('.')[1])).sub;
+  const sub=currentUserID();
   const u=await api('/users/'+sub);
   document.getElementById('pName').value=u.name||'';
   document.getElementById('pLast').value=u.lastName||'';
@@ -419,11 +504,13 @@ async function loadProfile(){
 }
 
 async function loadAll(){
-  try{ await loadBenches(); await loadPhotos(); await loadReviews(); await loadProfile(); }
+  try{ await loadBenches(); await loadProfile(); }
   catch(e){ msg(e.message); if(e.message.includes('401')){ clearToken(); showLogin(); } }
 }
 
-if(token()){ showApp(JSON.parse(atob(token().split('.')[1])).sub); } else { showLogin(); }
+// Ao iniciar a aplicación móstrase sempre a pantalla de login.
+clearToken();
+showLogin();
 </script>
 </body>
 </html>

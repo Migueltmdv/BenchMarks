@@ -26,6 +26,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Lógica de negocio de usuarios.
+ * Implementa UserDetailsService para que Spring Security pueda cargar
+ * usuarios en el login. Gestiona alta, edición (PUT y JSON Patch), borrado
+ * y los bancos favoritos del usuario autenticado.
+ */
 @Service
 @NullMarked
 public class UserService implements UserDetailsService {
@@ -44,15 +50,18 @@ public class UserService implements UserDetailsService {
         this.mapper = mapper;
     }
 
+    // Punto de entrada de Spring Security para el login: usuario por userID.
     @Override
     public gal.usc.etse.es.restdemo.model.entity.User loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findByUserID(username).orElseThrow(() -> new UsernameNotFoundException(username));
     }
 
+    // v0 del listado: todos los usuarios (sin paginar).
     public List<User> get() {
         return userRepository.findAll().stream().map(User::from).toList();
     }
 
+    // v1 del listado: página de usuarios.
     public Page<User> get(PageRequest page) {
         return userRepository.findAll(page).map(User::from);
     }
@@ -61,6 +70,7 @@ public class UserService implements UserDetailsService {
         return User.from(loadUserByUsername(userID));
     }
 
+    // Registro: comprueba duplicado, codifica la contraseña y asigna rol USER.
     public User create(User user) throws DuplicateUserException {
         var dbUser = userRepository.findByUserID(user.userID());
         if (dbUser.isPresent()) {
@@ -76,6 +86,7 @@ public class UserService implements UserDetailsService {
         return User.from(userRepository.save(entity));
     }
 
+    // PUT: solo sobrescribe los campos que llegan con valor.
     public User update(String userID, User changes) {
         gal.usc.etse.es.restdemo.model.entity.User db = loadUserByUsername(userID);
         if (changes.name() != null) db.setName(changes.name());
@@ -89,6 +100,7 @@ public class UserService implements UserDetailsService {
         return User.from(userRepository.save(db));
     }
 
+    // PATCH: aplica JSON Patch sobre el DTO y conserva el userID original.
     public User update(String userID, List<JsonPatchOperation> changes) throws UsernameNotFoundException {
         User user = get(userID);
         JsonNode patched = JsonPatch.apply(changes, mapper.convertValue(user, JsonNode.class));
@@ -112,7 +124,7 @@ public class UserService implements UserDetailsService {
         userRepository.findByUserID(userID).ifPresent(userRepository::delete);
     }
 
-    // --- METODY DO OBSŁUGI ULUBIONYCH ŁAWEK ---
+    // --- Bancos favoritos del usuario autenticado ---
 
     @Transactional
     public void addFavoriteBench(String userID, Long benchID) throws UsernameNotFoundException, BenchNotFoundException {
@@ -134,6 +146,8 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
+    // La transacción mantiene abierta la sesión mientras se recorre el Set LAZY
+    // y se convierte cada entidad en DTO.
     @Transactional(readOnly = true)
     public Set<Bench> getFavoriteBenches(String userID) throws UsernameNotFoundException {
         gal.usc.etse.es.restdemo.model.entity.User user = loadUserByUsername(userID);

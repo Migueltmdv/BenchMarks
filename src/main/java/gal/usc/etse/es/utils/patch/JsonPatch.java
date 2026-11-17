@@ -8,7 +8,13 @@ import tools.jackson.databind.JsonNode;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Implementación de JSON Patch (RFC 6902) sobre JsonNode.
+ * Aplica en orden las operaciones add/remove/replace/copy/move y devuelve
+ * el documento modificado.
+ */
 public class JsonPatch {
+    // Aplica todas las operaciones en orden y devuelve el documento resultante.
     public static JsonNode apply(List<JsonPatchOperation> patchOperations, JsonNode rootDocument) throws JsonPatchFailedException {
         for (JsonPatchOperation instruction : patchOperations) {
             rootDocument = switch (instruction.operation()) {

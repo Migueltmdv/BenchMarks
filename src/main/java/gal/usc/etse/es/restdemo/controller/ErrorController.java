@@ -21,6 +21,11 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+/**
+ * Traduce las excepciones de la aplicación a respuestas ProblemDetail
+ * (RFC 7807), de modo que todos los errores tengan el mismo formato JSON:
+ * status, title, detail y type.
+ */
 @RestControllerAdvice
 public class ErrorController extends ResponseEntityExceptionHandler {
     @ExceptionHandler(BadCredentialsException.class)

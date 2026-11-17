@@ -17,6 +17,14 @@ import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBui
 
 import java.time.Duration;
 
+/**
+ * Endpoints de autenticación.
+ * - login: valida credenciales, devuelve el JWT en la cabecera Authorization
+ *   y el refresh token en una cookie HttpOnly.
+ * - register: crea un usuario nuevo con rol USER.
+ * - refresh: renueva el JWT usando la cookie de refresh.
+ * - logout: invalida los refresh tokens del usuario.
+ */
 @NullMarked
 @RestController
 @RequestMapping("auth")
@@ -31,6 +39,8 @@ public class AuthenticationController {
         this.users = users;
     }
 
+    // Login: responde 204 sin cuerpo. El JWT va en la cabecera Authorization
+    // y el refresh token en una cookie HttpOnly limitada a /auth/refresh.
     @Operation(
             summary = "Authenticate into the application",
             description = "Authenticates the user into the application and gets a JWT token in the Authorization header"
@@ -73,6 +83,7 @@ public class AuthenticationController {
                 .body(createdUser);
     }
 
+    // Renueva el JWT leyendo el refresh token de la cookie.
     @PostMapping("refresh")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> refresh(@CookieValue(name = REFRESH_TOKEN_COOKIE_NAME) String refreshToken) throws InvalidRefreshTokenException {
@@ -81,6 +92,7 @@ public class AuthenticationController {
         return login(user);
     }
 
+    // Logout: invalida los refresh tokens del usuario y borra la cookie.
     @PostMapping("logout")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> logout(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {

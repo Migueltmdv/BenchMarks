@@ -5,8 +5,14 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 
+/**
+ * Utilidades de bajo nivel para modificar un JsonNode:
+ * put (añadir/reemplazar), remove y at (obtener), soportando objetos,
+ * arrays e índices, y el token '-' para el final de un array.
+ */
 public class JsonPatchUtil {
 
+    // Elimina el último segmento de la ruta: un índice de array o una propiedad.
     public static JsonNode remove(JsonPointer pointer, JsonNode node) {
         JsonPointer element = pointer.last(); // Last element from pointer
         JsonPointer path = pointer.head(); // Prefix from pointer
@@ -32,6 +38,8 @@ public class JsonPatchUtil {
         return node;
     }
 
+    // Añade o reemplaza el valor en la ruta indicada.
+    // En arrays, '-' significa "al final"; en objetos, crea o sobrescribe la propiedad.
     public static JsonNode put(JsonNode value, JsonPointer pointer, JsonNode node) {
         JsonPointer element = pointer.last(); // Last element from pointer
         JsonPointer path = pointer.head(); // Prefix from pointer
@@ -57,6 +65,7 @@ public class JsonPatchUtil {
         return node;
     }
 
+    // Devuelve el nodo apuntado por la ruta (usado por copy y move).
     public static JsonNode at(JsonNode node, JsonPointer pointer) {
         JsonPointer element = pointer.last();
         JsonPointer path = pointer.head();

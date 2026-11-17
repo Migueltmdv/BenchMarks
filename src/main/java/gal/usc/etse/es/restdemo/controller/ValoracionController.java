@@ -18,6 +18,12 @@ import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBui
 
 import java.util.List;
 
+/**
+ * CRUD de valoraciones (reseñas de bancos).
+ * - Listado paginado filtrable por banco y por usuario.
+ * - @JsonView(Public) limita los datos del autor en las respuestas.
+ * - El borrado está restringido al rol ADMIN.
+ */
 @NullMarked
 @RestController
 @RequestMapping("valoraciones")
@@ -28,8 +34,10 @@ public class ValoracionController {
     @Autowired
     public ValoracionController(ValoracionService reviews) { this.reviews = reviews; }
 
+    // Listado paginado; benchId y userId son filtros opcionales.
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @JsonView(User.Views.Public.class)
     public ResponseEntity<?> get(
             @RequestParam(value = "benchId", required = false) Long benchId,
             @RequestParam(value = "userId", required = false) String userId,
@@ -41,12 +49,14 @@ public class ValoracionController {
 
     @GetMapping(path = "{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @JsonView(User.Views.Public.class)
     public ResponseEntity<Valoracion> get(@PathVariable("id") Long id) throws ValoracionNotFoundException {
         return ResponseEntity.ok(reviews.getValoracion(id));
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @JsonView(User.Views.Public.class)
     public ResponseEntity<Valoracion> add(@RequestBody @Valid Valoracion review) {
         Valoracion created = reviews.addValoracion(review);
         return ResponseEntity.created(MvcUriComponentsBuilder.fromMethodName(ValoracionController.class, "get", created.reviewId()).build().toUri())
@@ -55,12 +65,14 @@ public class ValoracionController {
 
     @PatchMapping(path = "{id}", consumes = "application/json-patch+json", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @JsonView(User.Views.Public.class)
     public ResponseEntity<Valoracion> update(@PathVariable("id") Long id, @RequestBody List<JsonPatchOperation> changes) throws ValoracionNotFoundException {
         return ResponseEntity.ok(reviews.updateValoracion(id, changes));
     }
 
+    // Solo un ADMIN puede borrar valoraciones.
     @DeleteMapping(path = "{id}")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable("id") Long id) throws ValoracionNotFoundException {
         reviews.deleteValoracion(id);
         return ResponseEntity.noContent().build();

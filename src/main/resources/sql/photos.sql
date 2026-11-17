@@ -1,3 +1,10 @@
+-- ============================================================
+-- FOTOS DE EJEMPLO (solo metadatos).
+-- La columna image_data (bytea) queda a NULL: el frontend usa las
+-- imágenes estáticas /img/imgN.jpg cuando el banco no tiene foto real.
+-- Se ejecuta antes que books.sql y authors.sql, que referencian photo_id.
+-- ============================================================
+
 TRUNCATE photos CASCADE;
 
 INSERT INTO photos(photo_id, resolution, size) VALUES
@@ -23,5 +30,6 @@ INSERT INTO photos(photo_id, resolution, size) VALUES
 (20, '1280x720', 325000);
 
 
--- Avanza la secuencia para que los POST no choquen con los IDs insertados a mano
+-- Avanza la secuencia para que los POST no choquen con los IDs insertados a mano.
+-- Sin esto, el siguiente INSERT generaría photo_id=1 y fallaría por PK duplicada.
 SELECT setval(pg_get_serial_sequence('photos', 'photo_id'), (SELECT MAX(photo_id) FROM photos));

@@ -4,6 +4,12 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import java.util.Objects;
 
+/**
+ * Entidad que representa un banco público (tabla 'benches').
+ * - La foto es opcional y vive en la tabla 'photos'.
+ * - cascade + orphanRemoval: al borrar el banco se borra su foto.
+ * - equals/hashCode por ID porque los bancos se guardan en un Set (favoritos).
+ */
 @Entity
 @Table(name = "benches")
 @SuppressWarnings("unused")
@@ -21,17 +27,28 @@ public class Bench {
     @NotBlank
     private String type;
 
+    // Contador global de "me gusta" (no se guarda quién votó).
     @Column
     private Integer likes = 0;
 
+    // Foto del banco. La FK vive en esta tabla ('benches.photo_id').
+    // cascade + orphanRemoval hacen que al borrar el banco se borre su foto.
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "photo_id")
+    private Photo photo;
+
     public static Bench from(gal.usc.etse.es.restdemo.model.dto.Bench benchDTO) {
+        return from(benchDTO, null);
+    }
+
+    public static Bench from(gal.usc.etse.es.restdemo.model.dto.Bench benchDTO, Photo photo) {
         if (benchDTO == null) return null;
         return new Bench(
                 benchDTO.benchID(),
                 benchDTO.cords(),
                 benchDTO.type(),
                 benchDTO.likes()
-        );
+        ).setPhoto(photo);
     }
 
     public Bench() {}
@@ -59,7 +76,10 @@ public class Bench {
     public Integer getLikes() { return likes; }
     public Bench setLikes(Integer likes) { this.likes = likes == null ? 0 : likes; return this; }
 
-    // Dopisane metody ułatwiające działanie Set<Bench> w encji User
+    public Photo getPhoto() { return photo; }
+    public Bench setPhoto(Photo photo) { this.photo = photo; return this; }
+
+    // Identidad por ID: necesaria para que funcione Set<Bench> en User.favoriteBenches.
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -1,3 +1,11 @@
+-- ============================================================
+-- VALORACIONES DE EJEMPLO (tabla 'valoraciones').
+-- El fichero conserva el nombre 'authors.sql' del proyecto original.
+-- Cada fila referencia un usuario (reviewer_id), un banco (bench_id)
+-- y una foto (photo_id), todos existentes en los scripts anteriores.
+-- 'mark' debe estar entre 0 y 10; 'date' es la fecha de la reseña.
+-- ============================================================
+
 TRUNCATE valoraciones CASCADE;
 
 INSERT INTO valoraciones (review_id, reviewer_id, bench_id, date, mark, note, photo_id) VALUES
@@ -23,5 +31,5 @@ INSERT INTO valoraciones (review_id, reviewer_id, bench_id, date, mark, note, ph
 (20, 'admin', 20, '2026-06-20 16:00:00', 5, 'Average bench.', 20);
 
 
--- Avanza la secuencia para que los POST no choquen con los IDs insertados a mano
+-- Avanza la secuencia para que los POST no choquen con los IDs insertados a mano.
 SELECT setval(pg_get_serial_sequence('valoraciones', 'review_id'), (SELECT MAX(review_id) FROM valoraciones));

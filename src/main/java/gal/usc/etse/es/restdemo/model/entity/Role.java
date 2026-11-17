@@ -4,6 +4,11 @@ import jakarta.persistence.*;
 
 import java.util.Set;
 
+/**
+ * Rol de seguridad ('USER', 'ADMIN').
+ * - 'includes' define la jerarquía entre roles (ADMIN incluye USER).
+ * - 'permissions' asocia permisos granulares al rol.
+ */
 @Entity
 @Table(name = "roles")
 @SuppressWarnings("unused")
@@ -11,6 +16,7 @@ public class Role {
     @Id
     private String rolename;
 
+    // Roles que este rol incluye (jerarquía): ADMIN -> USER.
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "role_hierarchy",
@@ -18,6 +24,7 @@ public class Role {
             inverseJoinColumns = @JoinColumn(name = "includes"))
     private Set<Role> includes;
 
+    // Permisos granulares del rol (p. ej. users:read).
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "role_permissions",
